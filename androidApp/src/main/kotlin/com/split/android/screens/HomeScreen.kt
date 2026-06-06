@@ -125,13 +125,13 @@ fun HomeScreen(navController: NavController) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Button(
                 onClick = {
-                    // Create split and navigate to review
+                    // Create split and navigate to upload receipts
                     val newSplit = Split(
                         id = UUID.randomUUID().toString(),
                         name = splitName,
                         people = people
                     )
-                    navController.navigate("review_items/${newSplit.id}")
+                    navController.navigate("upload_receipts/${newSplit.id}")
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(

@@ -57,4 +57,10 @@ dependencies {
 
     // Kotlin Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // ML Kit Text Recognition (OCR)
+    implementation("com.google.mlkit:text-recognition:16.0.0")
+
+    // Image loading for camera/gallery
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }

@@ -173,15 +173,171 @@ open -a Xcode .
 xcodebuild -scheme 2Split -configuration Debug
 ```
 
+## Phase 2: Receipt OCR ✅ IMPLEMENTED
+
+### Features
+- **ML Kit Text Recognition** - Android OCR via Google ML Kit
+- **Vision Framework** - iOS OCR via Apple Vision framework
+- **Automatic item extraction** - Extracts line items from receipt images
+- **Smart parsing** - Detects quantity, item name, and price
+- **Progress indication** - Shows processing status while reading receipts
+- **Cross-platform consistency** - Same algorithm on both platforms
+
+### How It Works
+
+#### Receipt Upload Flow
+1. User selects "Add receipts" from home screen
+2. UploadReceiptsScreen (Android) or UploadReceiptsView (iOS) appears
+3. User selects photo from Camera or Photo Library
+4. Image is passed to OCR processor
+5. Text is extracted and parsed automatically
+6. Extracted items appear in the review screen
+
+#### Android OCR (ML Kit)
+```kotlin
+// ReceiptOCRProcessor.kt
+class ReceiptOCRProcessor {
+    suspend fun processReceipt(bitmap: Bitmap): List<Item>
+}
+```
+
+**Process:**
+1. ML Kit TextRecognizer extracts raw text from image
+2. Text is split into lines
+3. Metadata lines (headers, footers) are filtered out
+4. Each line is parsed for: quantity, item name, price
+5. Valid items are returned as `List<Item>`
+
+**Parsing Algorithm:**
+- Detects quantity prefix: "2x Item Name" or "2 Item Name"
+- Extracts price suffix: "Item Name $12.50"
+- Filters out common receipt metadata
+- Requires both name and price to include item
+
+#### iOS OCR (Vision Framework)
+```swift
+// ReceiptOCRProcessor.swift
+class ReceiptOCRProcessor {
+    func processReceipt(image: UIImage, completion: @escaping ProcessingCompletion)
+}
+```
+
+**Process:**
+1. Vision Framework VNRecognizeTextRequest extracts text
+2. Multiple text observations are concatenated
+3. Same parsing logic as Android
+4. Results returned via completion handler
+5. UI updated on main thread
+
+### File Structure
+
+**Android:**
+```
+androidApp/src/main/kotlin/com/split/android/
+├── ocr/
+│   └── ReceiptOCRProcessor.kt      # ML Kit integration & parsing
+└── screens/
+    └── UploadReceiptsScreen.kt     # Receipt upload UI
+```
+
+**iOS:**
+```
+iosApp/
+├── ReceiptOCRProcessor.swift       # Vision Framework integration
+└── UploadReceiptsView.swift        # Receipt upload UI
+```
+
+### Dependencies Added
+
+**Android:**
+- `com.google.mlkit:text-recognition:16.0.0` - ML Kit OCR
+- `io.coil-kt:coil-compose:2.4.0` - Image loading
+
+**iOS:**
+- `Vision` framework (built-in)
+- `PhotosUI` framework (built-in)
+
+### Screen Details
+
+#### UploadReceiptsScreen (Android)
+- Displays list of uploaded receipts
+- Shows processing progress with spinner
+- Shows item count once processing completes
+- Two buttons: Camera, Photo Library
+- "Scan receipts" button navigates to review
+- Material3 styling with progress indicators
+
+#### UploadReceiptsView (iOS)
+- Similar layout to Android version
+- PhotosPicker for selecting images
+- Real-time OCR processing
+- Item count display
+- Navigation to ReviewItemsView
+
+### Configuration
+
+**Android Manifest permissions needed:**
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+```
+
+**iOS Info.plist entries needed:**
+```xml
+<key>NSCameraUsageDescription</key>
+<string>Used to capture receipt photos for bill splitting</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Used to select receipt photos for bill splitting</string>
+```
+
+### Example Receipt Parsing
+
+**Input (OCR text):**
+```
+Restaurant Receipt
+2024-01-15
+
+2x Margherita pizza    $36.00
+1x Caesar salad        $12.50
+1x Garlic bread        $7.00
+2x Sparkling water     $12.00
+1x Tiramisu            $9.50
+2x House red (glass)   $22.00
+
+Subtotal               $99.00
+Tax                    $7.92
+Total                  $106.92
+```
+
+**Output (Parsed Items):**
+```
+[
+  Item(name="Margherita pizza", quantity=2, price=36.00),
+  Item(name="Caesar salad", quantity=1, price=12.50),
+  Item(name="Garlic bread", quantity=1, price=7.00),
+  Item(name="Sparkling water", quantity=2, price=12.00),
+  Item(name="Tiramisu", quantity=1, price=9.50),
+  Item(name="House red (glass)", quantity=2, price=22.00)
+]
+```
+
+### Error Handling
+
+- Failed image processing is handled gracefully
+- Processing errors don't crash the app
+- Users see empty state if OCR fails
+- Can retry with different image
+
 ## Future Enhancements
 
-### Phase 2: Receipt OCR
-- Integrate ML Kit Text Recognition (Android)
-- Integrate Vision Framework (iOS)
-- Automatic item extraction from receipt images
-- Item quantity and price parsing
+### Phase 3: Advanced OCR
+- Confidence scoring for recognized items
+- Manual item correction UI
+- Item quantity adjustment
+- Tax/tip line item extraction
+- Multi-language support
 
-### Phase 3: Advanced Features
+### Phase 4: Cloud Sync & Storage
 - Cloud sync with Firebase/CloudKit
 - Multiple bill history and archive
 - Payment tracking and reminders
@@ -189,14 +345,14 @@ xcodebuild -scheme 2Split -configuration Debug
 - Expense categorization
 - Photo management and storage
 
-### Phase 4: Social Features
+### Phase 5: Social Features
 - Group management
 - Payment settlements with push notifications
 - Activity history and audit logs
 - Recurring splits
 - Currency support
 
-### Phase 5: Payments Integration
+### Phase 6: Payments Integration
 - Connect payment providers (Stripe, PayPal)
 - Direct payment settlement
 - Payment request sharing

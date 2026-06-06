@@ -72,7 +72,7 @@ struct HomeView: View {
 
                 // Button
                 VStack(spacing: 8) {
-                    NavigationLink(destination: ReviewItemsView(viewModel: viewModel)) {
+                    NavigationLink(destination: UploadReceiptsView(viewModel: viewModel)) {
                         HStack {
                             Text("+ Add receipts")
                                 .font(.system(size: 16, weight: .semibold))
