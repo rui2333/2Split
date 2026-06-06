@@ -2,7 +2,6 @@ package com.split.shared
 
 import platform.UIKit.UIDevice
 
-actual class Platform() {
-    actual val platform: String
-        get() = "iOS ${UIDevice.currentDevice.systemVersion}"
+actual class Platform actual constructor() {
+    actual val platform: String = UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
 }
