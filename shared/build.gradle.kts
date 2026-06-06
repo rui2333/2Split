@@ -46,6 +46,7 @@ kotlin {
         }
 
         val androidMain by getting {
+            dependsOn(commonMain)
             dependencies {
                 implementation("androidx.appcompat:appcompat:1.6.1")
             }
@@ -65,6 +66,10 @@ kotlin {
 
         val iosSimulatorArm64Main by getting {
             dependsOn(iosMain)
+        }
+
+        val androidTest by getting {
+            dependsOn(commonTest)
         }
     }
 }
