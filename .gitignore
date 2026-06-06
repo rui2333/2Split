@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+*.jar
+
+# Android
+.idea/
+.DS_Store
+local.properties
+*.iml
+*.apk
+*.aab
+
+# Kotlin
+.kotlin/
+out/
+
+# iOS
+.xcworkspace/
+xcuserdata/
+*.xcarchive
+Pods/
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# Other
+.env
+.env.local
+*.log
