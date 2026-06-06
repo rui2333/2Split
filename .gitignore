@@ -2,6 +2,7 @@
 .gradle/
 build/
 *.jar
+gradle/
 
 # Android
 .idea/
@@ -31,3 +32,8 @@ Pods/
 .env
 .env.local
 *.log
+*.hprof
+
+# Gradle wrapper
+gradlew
+gradlew.bat
