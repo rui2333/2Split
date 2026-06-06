@@ -68,7 +68,11 @@ kotlin {
             dependsOn(iosMain)
         }
 
-        val androidTest by getting {
+        val androidUnitTest by getting {
+            dependsOn(commonTest)
+        }
+
+        val androidInstrumentedTest by getting {
             dependsOn(commonTest)
         }
     }
