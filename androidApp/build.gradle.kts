@@ -26,7 +26,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.5"
+        kotlinCompilerExtensionVersion = "1.5.6"
     }
 
     compileOptions {
@@ -63,4 +63,7 @@ dependencies {
 
     // Image loading for camera/gallery
     implementation("io.coil-kt:coil-compose:2.4.0")
+
+    // Coroutines Play Services integration for ML Kit tasks
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 }
