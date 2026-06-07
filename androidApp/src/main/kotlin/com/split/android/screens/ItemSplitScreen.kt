@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -75,14 +76,15 @@ fun ItemSplitScreen(splitId: String, navController: NavController) {
     }
 
     var currentItemIndex by remember { mutableStateOf(0) }
-    var itemSplits by remember { mutableStateOf(items.associate { it.id to (it.total() / 2.0) }) }
+    var itemAssignments by remember { mutableStateOf(items.associate { it.id to 0 }) }  // 0 = You, 1 = Sam
 
     val currentItem = items.getOrNull(currentItemIndex)
     val dragOffsetX = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
 
-    val currentAmount = itemSplits[currentItem?.id] ?: 0.0
-    val otherAmount = (currentItem?.total() ?: 0.0) - currentAmount
+    val assignedPersonIndex = itemAssignments[currentItem?.id] ?: 0
+    val currentAmount = if (assignedPersonIndex == 0) currentItem?.total() ?: 0.0 else 0.0
+    val otherAmount = if (assignedPersonIndex == 1) currentItem?.total() ?: 0.0 else 0.0
 
     fun navigateItem(offset: Float) {
         scope.launch {
@@ -135,11 +137,24 @@ fun ItemSplitScreen(splitId: String, navController: NavController) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            people.forEach { person ->
+            people.forEachIndexed { index, person ->
+                val isSelected = assignedPersonIndex == index
                 Box(
                     modifier = Modifier
                         .size(48.dp)
-                        .background(person.color, CircleShape),
+                        .background(person.color, CircleShape)
+                        .border(
+                            width = if (isSelected) 3.dp else 0.dp,
+                            color = Color.Black,
+                            shape = CircleShape
+                        )
+                        .clickable {
+                            if (currentItem != null) {
+                                itemAssignments = itemAssignments.toMutableMap().apply {
+                                    put(currentItem.id, index)
+                                }
+                            }
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -209,7 +224,7 @@ fun ItemSplitScreen(splitId: String, navController: NavController) {
 
         // Split controls
         Column(modifier = Modifier.fillMaxWidth()) {
-            Text("Hold the card → split it", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            Text("Tap above → assign to person", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(16.dp))
 
             if (currentItem != null) {
@@ -217,45 +232,30 @@ fun ItemSplitScreen(splitId: String, navController: NavController) {
                     SplitBar(
                         person = person,
                         amount = if (index == 0) currentAmount else otherAmount,
-                        total = currentItem.total(),
-                        onAmountChange = { newAmount ->
-                            itemSplits = itemSplits.toMutableMap().apply {
-                                put(currentItem.id, newAmount.coerceIn(0.0, currentItem.total()))
-                            }
-                        }
+                        total = currentItem.total()
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Quick split buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                // Navigation button
+                Button(
+                    onClick = {
+                        if (currentItemIndex < items.size - 1) {
+                            currentItemIndex++
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
-                    QuickSplitButton(
-                        "50 / 50",
-                        onClick = {
-                            itemSplits = itemSplits.toMutableMap().apply {
-                                put(currentItem.id, currentItem.total() / 2.0)
-                            }
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                    QuickSplitButton(
-                        "60 / 40",
-                        onClick = {
-                            itemSplits = itemSplits.toMutableMap().apply {
-                                put(currentItem.id, currentItem.total() * 0.6)
-                            }
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                    QuickSplitButton(
-                        "drag ↔",
-                        onClick = {},
-                        modifier = Modifier.weight(1f)
+                    Text(
+                        if (currentItemIndex < items.size - 1) "Next item →" else "Done ✓",
+                        fontSize = 16.sp
                     )
                 }
             }
@@ -268,7 +268,7 @@ fun SplitBar(
     person: PersonSplit,
     amount: Double,
     total: Double,
-    onAmountChange: (Double) -> Unit
+    onAmountChange: (Double) -> Unit = {}
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -315,15 +315,3 @@ fun SplitBar(
     }
 }
 
-@Composable
-fun QuickSplitButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(36.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFF0F0F0)
-        )
-    ) {
-        Text(label, color = Color.Black, fontSize = 12.sp)
-    }
-}
