@@ -236,7 +236,22 @@ fun ItemSplitScreen(splitId: String, navController: NavController) {
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
+            }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate("settlement/$splitId")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text("Finish & Calculate →", fontSize = 16.sp)
             }
         }
     }

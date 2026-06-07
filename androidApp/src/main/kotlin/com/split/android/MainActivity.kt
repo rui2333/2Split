@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.split.android.screens.HomeScreen
 import com.split.android.screens.ItemSplitScreen
 import com.split.android.screens.ReviewItemsScreen
+import com.split.android.screens.SettlementScreen
 import com.split.android.screens.SplitMethodScreen
 import com.split.android.screens.UploadReceiptsScreen
 import com.split.android.ui.theme.SplitTheme
@@ -45,6 +46,10 @@ class MainActivity : ComponentActivity() {
                         composable("item_split/{splitId}") { backStackEntry ->
                             val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
                             ItemSplitScreen(splitId, navController)
+                        }
+                        composable("settlement/{splitId}") { backStackEntry ->
+                            val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
+                            SettlementScreen(splitId, navController)
                         }
                     }
                 }
