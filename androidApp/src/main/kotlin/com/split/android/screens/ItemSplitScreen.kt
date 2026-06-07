@@ -237,27 +237,6 @@ fun ItemSplitScreen(splitId: String, navController: NavController) {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Navigation button
-                Button(
-                    onClick = {
-                        if (currentItemIndex < items.size - 1) {
-                            currentItemIndex++
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Text(
-                        if (currentItemIndex < items.size - 1) "Next item →" else "Done ✓",
-                        fontSize = 16.sp
-                    )
-                }
             }
         }
     }
