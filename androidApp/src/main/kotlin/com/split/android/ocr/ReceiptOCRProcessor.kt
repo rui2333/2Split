@@ -5,9 +5,10 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.split.shared.models.Item
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.UUID
-import kotlin.math.abs
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 data class ExtractedLine(
     val text: String,
@@ -21,12 +22,17 @@ class ReceiptOCRProcessor {
     suspend fun processReceipt(bitmap: Bitmap): List<Item> {
         return try {
             val image = InputImage.fromBitmap(bitmap, 0)
-            val result = recognizer.process(image).await()
-            val rawText = result.text
+            val result = suspendCancellableCoroutine<String> { continuation ->
+                recognizer.process(image)
+                    .addOnSuccessListener { text ->
+                        continuation.resume(text.text)
+                    }
+                    .addOnFailureListener { exception ->
+                        continuation.resumeWithException(exception)
+                    }
+            }
 
-            image.close()
-
-            parseReceiptText(rawText)
+            parseReceiptText(result)
         } catch (e: Exception) {
             emptyList()
         }
