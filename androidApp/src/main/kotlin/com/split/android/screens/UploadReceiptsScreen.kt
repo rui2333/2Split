@@ -1,5 +1,6 @@
 package com.split.android.screens
 
+import android.Manifest
 import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,6 +58,7 @@ fun UploadReceiptsScreen(splitId: String, navController: NavController) {
     var receipts = remember { mutableStateListOf<ReceiptUpload>() }
     val scope = rememberCoroutineScope()
     val ocrProcessor = remember { ReceiptOCRProcessor() }
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
@@ -81,6 +84,33 @@ fun UploadReceiptsScreen(splitId: String, navController: NavController) {
                 }
             }
         }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            takePictureLauncher.launch(null)
+        } else {
+            showPermissionDialog = true
+        }
+    }
+
+    fun requestCameraAccess() {
+        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Camera Permission Required") },
+            text = { Text("This app needs camera access to capture receipt photos. Please enable camera permission in app settings.") },
+            confirmButton = {
+                Button(onClick = { showPermissionDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
     }
 
     Column(
@@ -150,7 +180,7 @@ fun UploadReceiptsScreen(splitId: String, navController: NavController) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
-                    onClick = { takePictureLauncher.launch(null) },
+                    onClick = { requestCameraAccess() },
                     modifier = Modifier
                         .weight(1f)
                         .height(50.dp),
