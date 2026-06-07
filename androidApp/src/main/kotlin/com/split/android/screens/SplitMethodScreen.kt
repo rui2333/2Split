@@ -110,7 +110,14 @@ fun SplitMethodScreen(splitId: String, navController: NavController) {
 
         Button(
             onClick = {
-                navController.popBackStack()
+                when (selectedOption) {
+                    SplitOption.BY_ITEM -> {
+                        navController.navigate("item_split/$splitId")
+                    }
+                    else -> {
+                        navController.popBackStack()
+                    }
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()

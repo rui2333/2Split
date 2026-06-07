@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.split.android.screens.HomeScreen
+import com.split.android.screens.ItemSplitScreen
 import com.split.android.screens.ReviewItemsScreen
 import com.split.android.screens.SplitMethodScreen
 import com.split.android.screens.UploadReceiptsScreen
@@ -40,6 +41,10 @@ class MainActivity : ComponentActivity() {
                         composable("split_method/{splitId}") { backStackEntry ->
                             val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
                             SplitMethodScreen(splitId, navController)
+                        }
+                        composable("item_split/{splitId}") { backStackEntry ->
+                            val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
+                            ItemSplitScreen(splitId, navController)
                         }
                     }
                 }
