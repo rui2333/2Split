@@ -1,6 +1,8 @@
 package com.split.android.screens
 
 import android.graphics.Bitmap
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,8 +38,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.split.android.ocr.ReceiptOCRProcessor
 import com.split.shared.models.Item
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 data class ReceiptUpload(
     val id: String,
@@ -50,8 +54,34 @@ data class ReceiptUpload(
 @Composable
 fun UploadReceiptsScreen(splitId: String, navController: NavController) {
     var receipts = remember { mutableStateListOf<ReceiptUpload>() }
-    var isSelectingImage by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val ocrProcessor = remember { ReceiptOCRProcessor() }
+
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+            val receiptId = UUID.randomUUID().toString()
+            val receipt = ReceiptUpload(
+                id = receiptId,
+                name = "Receipt ${receipts.size + 1}",
+                bitmap = bitmap,
+                isProcessing = true
+            )
+            receipts.add(receipt)
+
+            scope.launch {
+                val items = ocrProcessor.processReceipt(bitmap)
+                val index = receipts.indexOfFirst { it.id == receiptId }
+                if (index >= 0) {
+                    receipts[index] = receipts[index].copy(
+                        isProcessing = false,
+                        items = items
+                    )
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -120,7 +150,7 @@ fun UploadReceiptsScreen(splitId: String, navController: NavController) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
-                    onClick = { },
+                    onClick = { takePictureLauncher.launch(null) },
                     modifier = Modifier
                         .weight(1f)
                         .height(50.dp),
