@@ -13,7 +13,6 @@ import com.split.android.screens.ItemSplitScreen
 import com.split.android.screens.ReviewItemsScreen
 import com.split.android.screens.SettlementScreen
 import com.split.android.screens.SplitMethodScreen
-import com.split.android.screens.UploadReceiptsScreen
 import com.split.android.ui.theme.SplitTheme
 
 class MainActivity : ComponentActivity() {
@@ -30,10 +29,6 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable("home") {
                             HomeScreen(navController)
-                        }
-                        composable("upload_receipts/{splitId}") { backStackEntry ->
-                            val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
-                            UploadReceiptsScreen(splitId, navController)
                         }
                         composable("review_items/{splitId}") { backStackEntry ->
                             val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
