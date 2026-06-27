@@ -106,7 +106,7 @@ fun HomeScreen(navController: NavController) {
     }
 
     val pickImageLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
+        contract = ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
             // Convert URI to Bitmap
@@ -155,7 +155,7 @@ fun HomeScreen(navController: NavController) {
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            pickImageLauncher.launch(null)
+            pickImageLauncher.launch("image/*")
         } else {
             showPermissionDialog = true
         }
