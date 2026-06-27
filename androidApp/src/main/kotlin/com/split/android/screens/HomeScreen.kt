@@ -1,7 +1,6 @@
 package com.split.android.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -96,30 +94,6 @@ fun HomeScreen(navController: NavController) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Receipt drop area
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .border(2.dp, Color.LightGray, RoundedCornerShape(8.dp))
-                    .background(Color(0xFFFAFAFA)),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "📄",
-                        fontSize = 40.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "drag a receipt here",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-                }
-            }
         }
 
         Column(modifier = Modifier.fillMaxWidth()) {
