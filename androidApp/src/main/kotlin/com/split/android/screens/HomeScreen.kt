@@ -62,7 +62,11 @@ data class ReceiptUpload(
 )
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(
+    navController: NavController,
+    currentItems: MutableList<Item>,
+    currentSplitIdState: androidx.compose.runtime.MutableState<String>
+) {
     var splitName by remember { mutableStateOf("Split a bill") }
     var people by remember { mutableStateOf(listOf(
         Person(UUID.randomUUID().toString(), "You", "👤"),
@@ -70,7 +74,6 @@ fun HomeScreen(navController: NavController) {
     )) }
 
     var receipts = remember { mutableStateListOf<ReceiptUpload>() }
-    var currentSplitId by remember { mutableStateOf("") }
     var showPermissionDialog by remember { mutableStateOf(false) }
     var editingPersonIndex by remember { mutableStateOf(-1) }
     var editingName by remember { mutableStateOf("") }
@@ -214,14 +217,14 @@ fun HomeScreen(navController: NavController) {
         )
     }
 
-    if (currentSplitId.isEmpty()) {
+    if (currentSplitIdState.value.isEmpty()) {
         // Create split on first load
         val newSplit = Split(
             id = UUID.randomUUID().toString(),
             name = splitName,
             people = people
         )
-        currentSplitId = newSplit.id
+        currentSplitIdState.value = newSplit.id
     }
 
     Column(
@@ -370,7 +373,12 @@ fun HomeScreen(navController: NavController) {
             if (receipts.isNotEmpty()) {
                 Button(
                     onClick = {
-                        navController.navigate("review_items/$currentSplitId")
+                        // Collect all OCR items from all receipts
+                        currentItems.clear()
+                        receipts.forEach { receipt ->
+                            currentItems.addAll(receipt.items)
+                        }
+                        navController.navigate("review_items/${currentSplitIdState.value}")
                     },
                     modifier = Modifier
                         .fillMaxWidth()

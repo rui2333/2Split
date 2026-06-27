@@ -40,17 +40,11 @@ data class ItemReview(
 )
 
 @Composable
-fun ReviewItemsScreen(splitId: String, navController: NavController) {
-    var items by remember {
-        mutableStateOf(listOf(
-            Item(UUID.randomUUID().toString(), "", "Margherita pizza", 1.0, 18.00),
-            Item(UUID.randomUUID().toString(), "", "Caesar salad", 2.0, 12.50),
-            Item(UUID.randomUUID().toString(), "", "Garlic bread", 1.0, 7.00),
-            Item(UUID.randomUUID().toString(), "", "Sparkling water", 2.0, 6.00),
-            Item(UUID.randomUUID().toString(), "", "Tiramisu", 1.0, 9.50),
-            Item(UUID.randomUUID().toString(), "", "House red (glass)", 2.0, 11.00)
-        ))
-    }
+fun ReviewItemsScreen(
+    splitId: String,
+    navController: NavController,
+    items: List<Item>
+) {
 
     val subtotal = items.sumOf { it.total() }
     val taxAndTip = 13.40
