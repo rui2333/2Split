@@ -64,7 +64,6 @@ fun HomeScreen(navController: NavController) {
         Person(UUID.randomUUID().toString(), "Sam", "👤")
     )) }
 
-    var isUploadMode by remember { mutableStateOf(false) }
     var receipts = remember { mutableStateListOf<ReceiptUpload>() }
     var currentSplitId by remember { mutableStateOf("") }
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -125,190 +124,159 @@ fun HomeScreen(navController: NavController) {
         )
     }
 
+    if (currentSplitId.isEmpty()) {
+        // Create split on first load
+        val newSplit = Split(
+            id = UUID.randomUUID().toString(),
+            name = splitName,
+            people = people
+        )
+        currentSplitId = newSplit.id
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        if (!isUploadMode) {
-            // Initial screen
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = splitName,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = "Two people, one bill.",
-                    fontSize = 16.sp,
-                    color = Color.Gray
-                )
+        // Header: Title and people avatars
+        Column {
+            Text(
+                text = splitName,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = "Two people, one bill.",
+                fontSize = 16.sp,
+                color = Color.Gray
+            )
 
-                Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-                // People avatars
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    people.forEachIndexed { index, person ->
-                        Box(
-                            modifier = Modifier
-                                .size(60.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = person.name.firstOrNull()?.toString() ?: "?",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
+            // People avatars
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                people.forEachIndexed { index, person ->
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = person.name.firstOrNull()?.toString() ?: "?",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
 
-                        if (index < people.size - 1) {
-                            Text(
-                                text = "&",
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                fontSize = 20.sp
-                            )
-                        }
+                    if (index < people.size - 1) {
+                        Text(
+                            text = "&",
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            fontSize = 20.sp
+                        )
                     }
                 }
             }
 
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Receipt header
+            Text("Receipts (${receipts.size})", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        // Receipt list or empty state
+        if (receipts.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text("📸", fontSize = 48.sp)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "No receipts yet",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Add receipts to get started",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(receipts) { receipt ->
+                    ReceiptItemView(receipt)
+                    Divider()
+                }
+            }
+        }
+
+        // Camera and Scan buttons
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { requestCameraAccess() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text("📷 Camera")
+                }
+
+                Button(
+                    onClick = { },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text("📁 Library")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (receipts.isNotEmpty()) {
                 Button(
                     onClick = {
-                        val newSplit = Split(
-                            id = UUID.randomUUID().toString(),
-                            name = splitName,
-                            people = people
-                        )
-                        currentSplitId = newSplit.id
-                        isUploadMode = true
-                        receipts.clear()
+                        navController.navigate("review_items/$currentSplitId")
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text("+ Add receipts", fontSize = 16.sp)
-                }
-                Text(
-                    text = "You can add more than one.",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-        } else {
-            // Upload mode
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = { isUploadMode = false },
-                    modifier = Modifier.padding(end = 8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                ) {
-                    Text("< back", color = Color.Black)
-                }
-                Text("Receipts (${receipts.size})", fontWeight = FontWeight.Bold)
-                Box(modifier = Modifier.weight(1f))
-            }
-
-            // Receipt list
-            if (receipts.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("📸", fontSize = 48.sp)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            "No receipts yet",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "Add receipts to get started",
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-                    }
-                }
-            } else {
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(receipts) { receipt ->
-                        ReceiptItemView(receipt)
-                        Divider()
-                    }
-                }
-            }
-
-            // Camera and Scan buttons
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Button(
-                        onClick = { requestCameraAccess() },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        )
-                    ) {
-                        Text("📷 Camera")
-                    }
-
-                    Button(
-                        onClick = { },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        )
-                    ) {
-                        Text("📁 Library")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                if (receipts.isNotEmpty()) {
-                    Button(
-                        onClick = {
-                            navController.navigate("review_items/$currentSplitId")
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text("Scan receipts →", fontSize = 16.sp)
-                    }
+                    Text("Scan receipts →", fontSize = 16.sp)
                 }
             }
         }
