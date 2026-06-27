@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -67,6 +69,8 @@ fun HomeScreen(navController: NavController) {
     var receipts = remember { mutableStateListOf<ReceiptUpload>() }
     var currentSplitId by remember { mutableStateOf("") }
     var showPermissionDialog by remember { mutableStateOf(false) }
+    var editingPersonIndex by remember { mutableStateOf(-1) }
+    var editingName by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
     val ocrProcessor = remember { ReceiptOCRProcessor() }
@@ -124,6 +128,38 @@ fun HomeScreen(navController: NavController) {
         )
     }
 
+    if (editingPersonIndex >= 0 && editingPersonIndex < people.size) {
+        AlertDialog(
+            onDismissRequest = { editingPersonIndex = -1 },
+            title = { Text("Edit name") },
+            text = {
+                TextField(
+                    value = editingName,
+                    onValueChange = { editingName = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (editingName.isNotBlank()) {
+                        val updatedPeople = people.toMutableList()
+                        updatedPeople[editingPersonIndex] = updatedPeople[editingPersonIndex].copy(name = editingName)
+                        people = updatedPeople
+                    }
+                    editingPersonIndex = -1
+                }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { editingPersonIndex = -1}) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     if (currentSplitId.isEmpty()) {
         // Create split on first load
         val newSplit = Split(
@@ -163,18 +199,31 @@ fun HomeScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 people.forEachIndexed { index, person ->
-                    Box(
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary),
-                        contentAlignment = Alignment.Center
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable {
+                            editingPersonIndex = index
+                            editingName = person.name
+                        }
                     ) {
+                        Box(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = person.name.firstOrNull()?.toString() ?: "?",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                         Text(
-                            text = person.name.firstOrNull()?.toString() ?: "?",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            text = person.name,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
 
