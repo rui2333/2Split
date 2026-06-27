@@ -2,6 +2,8 @@ package com.split.android.screens
 
 import android.Manifest
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -35,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,6 +77,7 @@ fun HomeScreen(navController: NavController) {
 
     val scope = rememberCoroutineScope()
     val ocrProcessor = remember { ReceiptOCRProcessor() }
+    val context = LocalContext.current
 
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
@@ -101,6 +105,42 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            // Convert URI to Bitmap
+            val bitmap = try {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                BitmapFactory.decodeStream(inputStream).also { inputStream?.close() }
+            } catch (e: Exception) {
+                null
+            }
+
+            if (bitmap != null) {
+                val receiptId = UUID.randomUUID().toString()
+                val receipt = ReceiptUpload(
+                    id = receiptId,
+                    name = "Receipt ${receipts.size + 1}",
+                    bitmap = bitmap,
+                    isProcessing = true
+                )
+                receipts.add(receipt)
+
+                scope.launch {
+                    val items = ocrProcessor.processReceipt(bitmap)
+                    val index = receipts.indexOfFirst { it.id == receiptId }
+                    if (index >= 0) {
+                        receipts[index] = receipts[index].copy(
+                            isProcessing = false,
+                            items = items
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -111,8 +151,22 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
+    val readMediaPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pickImageLauncher.launch(null)
+        } else {
+            showPermissionDialog = true
+        }
+    }
+
     fun requestCameraAccess() {
         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+
+    fun requestLibraryAccess() {
+        readMediaPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
     }
 
     if (showPermissionDialog) {
@@ -299,7 +353,7 @@ fun HomeScreen(navController: NavController) {
                 }
 
                 Button(
-                    onClick = { },
+                    onClick = { requestLibraryAccess() },
                     modifier = Modifier
                         .weight(1f)
                         .height(50.dp),
