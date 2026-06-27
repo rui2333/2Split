@@ -75,9 +75,6 @@ fun SettlementScreen(splitId: String, navController: NavController) {
         }.sumOf { it.total() }
     }
 
-    val total = personTotals.sum()
-    val perPerson = total / people.size
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -87,7 +84,7 @@ fun SettlementScreen(splitId: String, navController: NavController) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 24.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -101,36 +98,6 @@ fun SettlementScreen(splitId: String, navController: NavController) {
             Text("Settlement", fontWeight = FontWeight.Bold)
             Box(modifier = Modifier.weight(1f))
         }
-
-        // Total amount
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFFAFAFA), RoundedCornerShape(12.dp))
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Total Bill", fontSize = 14.sp, color = Color.Gray)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "$${String.format("%.2f", total)}",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Per person: $${String.format("%.2f", perPerson)}",
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         // Person summary
         Text("Payment Summary", fontWeight = FontWeight.Bold, fontSize = 14.sp)
