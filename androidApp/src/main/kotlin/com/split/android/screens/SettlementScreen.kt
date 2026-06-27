@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.split.android.utils.BackButton
 import com.split.shared.models.Item
 import java.util.UUID
 
@@ -88,13 +89,7 @@ fun SettlementScreen(splitId: String, navController: NavController) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.padding(end = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-            ) {
-                Text("< back", color = Color.Black)
-            }
+            BackButton(onClick = { navController.popBackStack() })
             Text("Settlement", fontWeight = FontWeight.Bold)
             Box(modifier = Modifier.weight(1f))
         }

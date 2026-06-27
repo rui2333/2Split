@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.split.android.utils.BackButton
 
 enum class SplitOption {
     EVEN, BY_ITEM, CUSTOM
@@ -53,12 +54,7 @@ fun SplitMethodScreen(splitId: String, navController: NavController) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(
-                onClick = { navController.popBackStack() },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-            ) {
-                Text("< back", color = Color.Black)
-            }
+            BackButton(onClick = { navController.popBackStack() })
             Text("How to split?", fontWeight = FontWeight.Bold)
             Box(modifier = Modifier.weight(1f))
         }

@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.split.android.utils.BackButton
 import com.split.shared.models.Item
 import java.util.UUID
 
@@ -68,14 +69,8 @@ fun ReviewItemsScreen(splitId: String, navController: NavController) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.padding(end = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-            ) {
-                Text("< back", color = Color.Black)
-            }
-            Text("Check the items", fontWeight = FontWeight.Bold)
+            BackButton(onClick = { navController.popBackStack() })
+            Text("Check the items", fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             Box(modifier = Modifier.weight(1f))
         }
 
