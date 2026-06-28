@@ -32,47 +32,36 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.MutableState
 import androidx.navigation.NavController
 import com.split.android.utils.BackButton
 import com.split.shared.models.Item
-import java.util.UUID
+import com.split.shared.models.Person
 
 @Composable
-fun SettlementScreen(splitId: String, navController: NavController) {
-    val items = remember {
-        listOf(
-            Item(UUID.randomUUID().toString(), "", "Margherita pizza", 1.0, 18.00),
-            Item(UUID.randomUUID().toString(), "", "Caesar salad", 2.0, 12.50),
-            Item(UUID.randomUUID().toString(), "", "Garlic bread", 1.0, 7.00),
-            Item(UUID.randomUUID().toString(), "", "Sparkling water", 2.0, 6.00),
-            Item(UUID.randomUUID().toString(), "", "Tiramisu", 1.0, 9.50),
-            Item(UUID.randomUUID().toString(), "", "House red (glass)", 2.0, 11.00)
-        )
-    }
-
-    val people = remember {
-        listOf(
-            PersonSplit("You", "Y", Color(0xFFE8845E)),
-            PersonSplit("Sam", "S", Color(0xFF4DB8A8))
-        )
-    }
-
-    // Dummy itemAssignments - in real app this would be passed in
-    val itemAssignments by remember {
-        mutableStateOf(mapOf(
-            items[0].id to 0,  // You
-            items[1].id to 1,  // Sam
-            items[2].id to 0,  // You
-            items[3].id to 1,  // Sam
-            items[4].id to 0,  // You
-            items[5].id to 1   // Sam
-        ))
+fun SettlementScreen(
+    splitId: String,
+    navController: NavController,
+    items: List<Item>,
+    people: List<Person>,
+    itemAssignments: MutableState<Map<String, Int>>
+) {
+    // Create PersonSplit list with colors for display
+    val personSplits = remember {
+        val colors = listOf(Color(0xFFE8845E), Color(0xFF4DB8A8))
+        people.mapIndexed { index, person ->
+            PersonSplit(
+                name = person.name,
+                initials = person.name.firstOrNull()?.toString() ?: "?",
+                color = colors.getOrNull(index) ?: Color.Gray
+            )
+        }
     }
 
     // Calculate totals
     val personTotals = people.indices.map { index ->
         items.filter { item ->
-            itemAssignments[item.id] == index
+            itemAssignments.value[item.id] == index
         }.sumOf { it.total() }
     }
 
@@ -99,7 +88,7 @@ fun SettlementScreen(splitId: String, navController: NavController) {
         Spacer(modifier = Modifier.height(12.dp))
 
         LazyColumn(modifier = Modifier.weight(1f)) {
-            items(people.indices.toList()) { index ->
+            items(personSplits.indices.toList()) { index ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -115,18 +104,18 @@ fun SettlementScreen(splitId: String, navController: NavController) {
                             Box(
                                 modifier = Modifier
                                     .size(36.dp)
-                                    .background(people[index].color, CircleShape),
+                                    .background(personSplits[index].color, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    people[index].initials,
+                                    personSplits[index].initials,
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 12.sp
                                 )
                             }
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text(people[index].name, fontWeight = FontWeight.SemiBold)
+                            Text(personSplits[index].name, fontWeight = FontWeight.SemiBold)
                         }
                         Text(
                             "$${String.format("%.2f", personTotals[index])}",

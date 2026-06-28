@@ -32,14 +32,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.split.android.utils.BackButton
+import com.split.shared.models.Item
+import com.split.shared.models.Person
 
 enum class SplitOption {
     EVEN, BY_ITEM, CUSTOM
 }
 
 @Composable
-fun SplitMethodScreen(splitId: String, navController: NavController) {
+fun SplitMethodScreen(
+    splitId: String,
+    navController: NavController,
+    items: List<Item>,
+    people: List<Person>
+) {
     var selectedOption by remember { mutableStateOf(SplitOption.EVEN) }
+
+    val total = items.sumOf { it.total() }
+    val peopleCount = people.size
 
     Column(
         modifier = Modifier
@@ -67,7 +77,7 @@ fun SplitMethodScreen(splitId: String, navController: NavController) {
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Text(
-            text = "$77.40 total - between 2 people",
+            text = "$${String.format("%.2f", total)} total - between $peopleCount people",
             fontSize = 14.sp,
             color = Color.Gray,
             modifier = Modifier.padding(bottom = 24.dp)
@@ -75,10 +85,15 @@ fun SplitMethodScreen(splitId: String, navController: NavController) {
 
         // Split options
         Column(modifier = Modifier.weight(1f)) {
+            val evenSplit = total / people.size
+            val details = people.mapIndexed { index, person ->
+                "${person.name}\n$${String.format("%.2f", evenSplit)}"
+            }.joinToString("\n\n")
+
             SplitOptionItem(
                 title = "Split evenly",
-                description = "½ (50/50 - skip the items)",
-                details = "You\n$38.70\n\nSam\n$38.70",
+                description = "Equal split for all",
+                details = details,
                 isSelected = selectedOption == SplitOption.EVEN,
                 onClick = { selectedOption = SplitOption.EVEN }
             )

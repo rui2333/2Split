@@ -18,6 +18,7 @@ import com.split.android.screens.SettlementScreen
 import com.split.android.screens.SplitMethodScreen
 import com.split.android.ui.theme.SplitTheme
 import com.split.shared.models.Item
+import com.split.shared.models.Person
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,14 +30,16 @@ class MainActivity : ComponentActivity() {
 
                     // Shared state for app
                     val currentItems = remember { mutableStateListOf<Item>() }
+                    val currentPeople = remember { mutableStateListOf<Person>() }
                     val currentSplitId = remember { mutableStateOf("") }
+                    val itemAssignments = remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
 
                     NavHost(
                         navController = navController,
                         startDestination = "home"
                     ) {
                         composable("home") {
-                            HomeScreen(navController, currentItems, currentSplitId)
+                            HomeScreen(navController, currentItems, currentSplitId, currentPeople)
                         }
                         composable("review_items/{splitId}") { backStackEntry ->
                             val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
@@ -44,15 +47,15 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("split_method/{splitId}") { backStackEntry ->
                             val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
-                            SplitMethodScreen(splitId, navController)
+                            SplitMethodScreen(splitId, navController, currentItems, currentPeople)
                         }
                         composable("item_split/{splitId}") { backStackEntry ->
                             val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
-                            ItemSplitScreen(splitId, navController)
+                            ItemSplitScreen(splitId, navController, currentItems, currentPeople, itemAssignments)
                         }
                         composable("settlement/{splitId}") { backStackEntry ->
                             val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
-                            SettlementScreen(splitId, navController)
+                            SettlementScreen(splitId, navController, currentItems, currentPeople, itemAssignments)
                         }
                     }
                 }

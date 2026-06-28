@@ -41,9 +41,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.MutableState
 import androidx.navigation.NavController
 import com.split.android.utils.BackButton
 import com.split.shared.models.Item
+import com.split.shared.models.Person
 import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.math.absoluteValue
@@ -57,33 +59,33 @@ data class PersonSplit(
 )
 
 @Composable
-fun ItemSplitScreen(splitId: String, navController: NavController) {
-    val items = remember {
-        listOf(
-            Item(UUID.randomUUID().toString(), "", "Margherita pizza", 1.0, 18.00),
-            Item(UUID.randomUUID().toString(), "", "Caesar salad", 2.0, 12.50),
-            Item(UUID.randomUUID().toString(), "", "Garlic bread", 1.0, 7.00),
-            Item(UUID.randomUUID().toString(), "", "Sparkling water", 2.0, 6.00),
-            Item(UUID.randomUUID().toString(), "", "Tiramisu", 1.0, 9.50),
-            Item(UUID.randomUUID().toString(), "", "House red (glass)", 2.0, 11.00)
-        )
-    }
-
-    val people = remember {
-        listOf(
-            PersonSplit("You", "Y", Color(0xFFE8845E)),
-            PersonSplit("Sam", "S", Color(0xFF4DB8A8))
-        )
-    }
+fun ItemSplitScreen(
+    splitId: String,
+    navController: NavController,
+    items: List<Item>,
+    people: List<Person>,
+    itemAssignments: MutableState<Map<String, Int>>
+) {
 
     var currentItemIndex by remember { mutableStateOf(0) }
-    var itemAssignments by remember { mutableStateOf(items.associate { it.id to 0 }) }  // 0 = You, 1 = Sam
+
+    // Convert Person to PersonSplit with colors
+    val personSplits = remember {
+        val colors = listOf(Color(0xFFE8845E), Color(0xFF4DB8A8))
+        people.mapIndexed { index, person ->
+            PersonSplit(
+                name = person.name,
+                initials = person.name.firstOrNull()?.toString() ?: "?",
+                color = colors.getOrNull(index) ?: Color.Gray
+            )
+        }
+    }
 
     val currentItem = items.getOrNull(currentItemIndex)
     val dragOffsetX = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
 
-    val assignedPersonIndex = itemAssignments[currentItem?.id] ?: 0
+    val assignedPersonIndex = itemAssignments.value[currentItem?.id] ?: 0
     val currentAmount = if (assignedPersonIndex == 0) currentItem?.total() ?: 0.0 else 0.0
     val otherAmount = if (assignedPersonIndex == 1) currentItem?.total() ?: 0.0 else 0.0
 
@@ -132,7 +134,7 @@ fun ItemSplitScreen(splitId: String, navController: NavController) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            people.forEachIndexed { index, person ->
+            personSplits.forEachIndexed { index, person ->
                 val isSelected = assignedPersonIndex == index
                 Box(
                     modifier = Modifier
@@ -145,7 +147,7 @@ fun ItemSplitScreen(splitId: String, navController: NavController) {
                         )
                         .clickable {
                             if (currentItem != null) {
-                                itemAssignments = itemAssignments.toMutableMap().apply {
+                                itemAssignments.value = itemAssignments.value.toMutableMap().apply {
                                     put(currentItem.id, index)
                                 }
                             }
@@ -223,7 +225,7 @@ fun ItemSplitScreen(splitId: String, navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             if (currentItem != null) {
-                people.forEachIndexed { index, person ->
+                personSplits.forEachIndexed { index, person ->
                     SplitBar(
                         person = person,
                         amount = if (index == 0) currentAmount else otherAmount,

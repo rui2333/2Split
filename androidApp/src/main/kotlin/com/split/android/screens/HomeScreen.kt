@@ -65,13 +65,20 @@ data class ReceiptUpload(
 fun HomeScreen(
     navController: NavController,
     currentItems: MutableList<Item>,
-    currentSplitIdState: androidx.compose.runtime.MutableState<String>
+    currentSplitIdState: androidx.compose.runtime.MutableState<String>,
+    currentPeople: MutableList<Person>
 ) {
     var splitName by remember { mutableStateOf("Split a bill") }
-    var people by remember { mutableStateOf(listOf(
-        Person(UUID.randomUUID().toString(), "You", "👤"),
-        Person(UUID.randomUUID().toString(), "Sam", "👤")
-    )) }
+
+    // Initialize people on first load
+    if (currentPeople.isEmpty()) {
+        currentPeople.addAll(listOf(
+            Person(UUID.randomUUID().toString(), "You", "👤"),
+            Person(UUID.randomUUID().toString(), "Sam", "👤")
+        ))
+    }
+
+    var people by remember { mutableStateOf(currentPeople.toList()) }
 
     var receipts = remember { mutableStateListOf<ReceiptUpload>() }
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -203,6 +210,9 @@ fun HomeScreen(
                         val updatedPeople = people.toMutableList()
                         updatedPeople[editingPersonIndex] = updatedPeople[editingPersonIndex].copy(name = editingName)
                         people = updatedPeople
+                        // Also update shared state
+                        currentPeople.clear()
+                        currentPeople.addAll(updatedPeople)
                     }
                     editingPersonIndex = -1
                 }) {

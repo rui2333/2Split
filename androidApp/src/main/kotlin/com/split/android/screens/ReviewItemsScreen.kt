@@ -32,12 +32,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.split.android.utils.BackButton
 import com.split.shared.models.Item
-import java.util.UUID
-
-data class ItemReview(
-    val item: Item,
-    val isEditing: Boolean = false
-)
 
 @Composable
 fun ReviewItemsScreen(
@@ -45,10 +39,8 @@ fun ReviewItemsScreen(
     navController: NavController,
     items: List<Item>
 ) {
-
     val subtotal = items.sumOf { it.total() }
-    val taxAndTip = 13.40
-    val total = subtotal + taxAndTip
+    val total = subtotal
 
     Column(
         modifier = Modifier
@@ -98,22 +90,6 @@ fun ReviewItemsScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Subtotal")
-                    Text("$${String.format("%.2f", subtotal)}")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Tax + tip")
-                    Text("$${String.format("%.2f", taxAndTip)}")
-                }
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider()
                 Spacer(modifier = Modifier.height(16.dp))
