@@ -15,7 +15,6 @@ import com.split.android.screens.HomeScreen
 import com.split.android.screens.ItemSplitScreen
 import com.split.android.screens.ReviewItemsScreen
 import com.split.android.screens.SettlementScreen
-import com.split.android.screens.SplitMethodScreen
 import com.split.android.ui.theme.SplitTheme
 import com.split.shared.models.Item
 import com.split.shared.models.Person
@@ -44,10 +43,6 @@ class MainActivity : ComponentActivity() {
                         composable("review_items/{splitId}") { backStackEntry ->
                             val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
                             ReviewItemsScreen(splitId, navController, currentItems)
-                        }
-                        composable("split_method/{splitId}") { backStackEntry ->
-                            val splitId = backStackEntry.arguments?.getString("splitId") ?: ""
-                            SplitMethodScreen(splitId, navController, currentItems, currentPeople)
                         }
                         composable("item_split/{splitId}") { backStackEntry ->
                             val splitId = backStackEntry.arguments?.getString("splitId") ?: ""

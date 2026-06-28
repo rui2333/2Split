@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -68,6 +69,7 @@ fun ItemSplitScreen(
 ) {
 
     var currentItemIndex by remember { mutableStateOf(0) }
+    var useEvenSplit by remember { mutableStateOf(false) }
 
     // Convert Person to PersonSplit with colors
     val personSplits = remember {
@@ -84,6 +86,14 @@ fun ItemSplitScreen(
     val currentItem = items.getOrNull(currentItemIndex)
     val dragOffsetX = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
+
+    // When even split is enabled, calculate equal amounts for each person
+    val itemsPerPerson = if (useEvenSplit && items.isNotEmpty()) {
+        val total = items.sumOf { it.total() }
+        total / people.size
+    } else {
+        0.0
+    }
 
     val assignedPersonIndex = itemAssignments.value[currentItem?.id] ?: 0
     val currentAmount = if (assignedPersonIndex == 0) currentItem?.total() ?: 0.0 else 0.0
@@ -122,97 +132,166 @@ fun ItemSplitScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             BackButton(onClick = { navController.popBackStack() })
-            Text("${currentItemIndex + 1} of ${items.size}", fontWeight = FontWeight.Bold)
+            Text(if (useEvenSplit) "Split evenly" else "${currentItemIndex + 1} of ${items.size}", fontWeight = FontWeight.Bold)
             Box(modifier = Modifier.weight(1f))
         }
 
-        // Person indicators at top
+        // Split mode toggle
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            personSplits.forEachIndexed { index, person ->
-                val isSelected = assignedPersonIndex == index
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(person.color, CircleShape)
-                        .border(
-                            width = if (isSelected) 3.dp else 0.dp,
-                            color = Color.Black,
-                            shape = CircleShape
-                        )
-                        .clickable {
-                            if (currentItem != null) {
-                                itemAssignments.value = itemAssignments.value.toMutableMap().apply {
-                                    put(currentItem.id, index)
-                                }
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        person.initials,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                }
-            }
+            Text(
+                text = if (useEvenSplit) "Split evenly" else "Assign items",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Switch(
+                checked = useEvenSplit,
+                onCheckedChange = { useEvenSplit = it }
+            )
         }
 
-        // Swipeable item card
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .offset { IntOffset(dragOffsetX.value.roundToInt(), 0) }
-                .background(Color.White, RoundedCornerShape(16.dp))
-                .border(2.dp, Color.LightGray, RoundedCornerShape(16.dp))
-                .padding(24.dp)
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            scope.launch {
-                                dragOffsetX.snapTo(dragOffsetX.value + dragAmount.x)
+        if (!useEvenSplit) {
+            // Person indicators at top (for assign items mode)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                personSplits.forEachIndexed { index, person ->
+                    val isSelected = assignedPersonIndex == index
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(person.color, CircleShape)
+                            .border(
+                                width = if (isSelected) 3.dp else 0.dp,
+                                color = Color.Black,
+                                shape = CircleShape
+                            )
+                            .clickable {
+                                if (currentItem != null) {
+                                    itemAssignments.value = itemAssignments.value.toMutableMap().apply {
+                                        put(currentItem.id, index)
+                                    }
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            person.initials,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                }
+            }
+
+            // Swipeable item card
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .offset { IntOffset(dragOffsetX.value.roundToInt(), 0) }
+                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .border(2.dp, Color.LightGray, RoundedCornerShape(16.dp))
+                    .padding(24.dp)
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+                                scope.launch {
+                                    dragOffsetX.snapTo(dragOffsetX.value + dragAmount.x)
+                                }
+                            },
+                            onDragEnd = {
+                                navigateItem(dragOffsetX.value)
                             }
-                        },
-                        onDragEnd = {
-                            navigateItem(dragOffsetX.value)
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                if (currentItem != null) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            "${currentItem.quantity.toInt()}x",
+                            fontSize = 16.sp,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            currentItem.name,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "$${String.format("%.2f", currentItem.total())}",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        } else {
+            // Even split summary view
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    "Total: $${String.format("%.2f", items.sumOf { it.total() })}",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                personSplits.forEach { person ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(person.color, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    person.initials,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(person.name, fontWeight = FontWeight.SemiBold)
                         }
-                    )
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            if (currentItem != null) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Text(
-                        "${currentItem.quantity.toInt()}x",
-                        fontSize = 16.sp,
-                        color = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        currentItem.name,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        "$${String.format("%.2f", currentItem.total())}",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                        Text(
+                            "$${String.format("%.2f", itemsPerPerson)}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }
         }
@@ -221,15 +300,29 @@ fun ItemSplitScreen(
 
         // Split controls
         Column(modifier = Modifier.fillMaxWidth()) {
-            Text("Tap above → assign to person", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-            Spacer(modifier = Modifier.height(16.dp))
+            if (!useEvenSplit) {
+                Text("Tap above → assign to person", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(16.dp))
 
-            if (currentItem != null) {
-                personSplits.forEachIndexed { index, person ->
+                if (currentItem != null) {
+                    personSplits.forEachIndexed { index, person ->
+                        SplitBar(
+                            person = person,
+                            amount = if (index == 0) currentAmount else otherAmount,
+                            total = currentItem.total()
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+            } else {
+                Text("Split equally between all people", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                personSplits.forEach { person ->
                     SplitBar(
                         person = person,
-                        amount = if (index == 0) currentAmount else otherAmount,
-                        total = currentItem.total()
+                        amount = itemsPerPerson,
+                        total = items.sumOf { it.total() }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }

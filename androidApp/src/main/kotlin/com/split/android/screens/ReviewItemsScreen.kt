@@ -113,7 +113,7 @@ fun ReviewItemsScreen(
 
         Button(
             onClick = {
-                navController.navigate("split_method/$splitId")
+                navController.navigate("item_split/$splitId")
             },
             modifier = Modifier
                 .fillMaxWidth()
